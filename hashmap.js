@@ -35,6 +35,182 @@ class HashMap {
     return hashCode;
   }
 
+  resize() {
+    let entries = this.entries();
+    this.capacity *= 2;
+    this.size = 0;
+    this.buckets = new Array(this.capacity).fill(null);
+    for (let entry of entries) {
+      this.set(entry[0], entry[1]);
+    }
+  }
+
+  set(key, value) {
+    if (this.size >= this.capacity*this.loadFactor) {
+      this.resize();
+    }
+    const hashCode = this.hash(key);
+    
+    //Set when the first entry happens in a bucket 
+    if (this.buckets[hashCode] === null) {
+      this.buckets[hashCode] = new Node(key, value);
+      this.size++;
+      return;
+    }
+
+    //Set when a key is already inside
+    let travelNode = this.buckets[hashCode];
+    while (travelNode.next !== null) {
+      if (travelNode.key === key) {
+        travelNode.value = value;
+        return;
+      }
+      travelNode = travelNode.next;
+    }
+    //Here travelNode is the last element it never gets checked in the loop
+    if (travelNode.key === key) {
+      travelNode.value = value;
+      return;
+    }
+
+    //Set when new key is added and one is already at head
+    travelNode.next = new Node(key, value);
+    this.size++;
+    return;
+  }
+
+  get(key) {
+    const hashCode = this.hash(key);
+
+    let travelNode = this.buckets[hashCode];
+    while (travelNode !== null) {
+      if (travelNode.key === key) {
+        return travelNode.value;
+      }
+      travelNode = travelNode.next;
+    }
+
+    return null;
+  }
+
+  has(key) {
+    const hashCode = this.hash(key);
+
+    let travelNode = this.buckets[hashCode];
+    while (travelNode !== null) {
+      if (travelNode.key === key) {
+        return true;
+      }
+      travelNode = travelNode.next;
+    }
+
+    return false;
+  }
+
+  remove(key) {
+    const hashCode = this.hash(key);
+    if (this.buckets[hashCode] === null) {
+      return false;
+    }
+
+    let travelNode = this.buckets[hashCode];
+    if (travelNode.key === key) {
+      this.buckets[hashCode] = travelNode.next;
+      this.size--;
+      return true;
+    }
+
+    while (travelNode.next !== null) {
+      if (travelNode.next.key === key) {
+        const nodeAfter = travelNode.next.next;
+        travelNode.next = nodeAfter;
+        this.size--;
+        return true;
+      }
+      travelNode = travelNode.next;
+    }
+
+    return false;
+  }
+
+  length() {
+    return this.size;
+  }
+
+  clear() {
+    this.buckets.fill(null);
+    this.size = 0;
+  }
+
+  keys() {
+    let keysArr = [];
+    for (let bucket of this.buckets) {
+      if (bucket === null) {
+        continue;
+      }
+
+      let travelNode = bucket;
+      while (travelNode !== null) {
+        keysArr.push(travelNode.key);
+        travelNode = travelNode.next;
+      }
+    }
+
+    return keysArr;
+  }
+
+  values() {
+    let valuesArr = [];
+    for (let bucket of this.buckets) {
+      if (bucket === null) {
+        continue;
+      }
+
+      let travelNode = bucket;
+      while (travelNode !== null) {
+        valuesArr.push(travelNode.value);
+        travelNode = travelNode.next;
+      }
+    }
+
+    return valuesArr;
+  }
+
+  entries() {
+    let entriesArr = [];
+    for (let bucket of this.buckets) {
+      if (bucket === null) {
+        continue;
+      }
+
+      let travelNode = bucket;
+      while (travelNode !== null) {
+        entriesArr.push([travelNode.key, travelNode.value]);
+        travelNode = travelNode.next;
+      }
+    }
+
+    return entriesArr;
+  }
+
+  toString() {
+    let finalString = "";
+    for (let i = 0; i < this.capacity; i++) {
+      if (this.buckets[i] === null) {
+        finalString += `[${i}] => null\n`;
+      } else {
+        let travelNode = this.buckets[i];
+        finalString += `[${i}] => `
+        while (travelNode !== null) {
+          finalString += `(${travelNode.key}, ${travelNode.value}) -> `
+          travelNode = travelNode.next;
+        }
+        finalString += `null\n`;
+      }
+    }
+
+    return finalString;
+  }
 }
 
 export {HashMap};
